@@ -1,5 +1,8 @@
 # -
 这是一个完全由AI写的自动八字排盘工具，附带提示词
+<img width="1260" height="2433" alt="Image" src="https://github.com/user-attachments/assets/49539551-bec7-46be-a354-e651b53e5692" />
+<img width="1260" height="2189" alt="Image" src="https://github.com/user-attachments/assets/538d436c-7951-4a06-a6c1-cc44760b94cb" />
+
 
 #🌌 人工智能八字排盘与深度提示词工程工具(AI Bazi动态提示生成器)
 
