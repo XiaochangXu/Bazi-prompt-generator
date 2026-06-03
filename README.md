@@ -33,7 +33,7 @@
 
 ##🚀  快速开始
 
-1. **直接访问**：[请将此处替换为你在GitHub Pages生成的https链接]
+1. **直接访问**：https://xiaochangxu.github.io/Bazi-prompt-generator/
 2. **本地运行**：直接下载本仓库的`index.html`文件，双击即可在任意浏览器中离线运行。
 
 ##📚  鸣谢支持
