@@ -1,5 +1,5 @@
 # 八字排盘工具
-这是一个完全由AI写的自动八字排盘工具，附带提示词
+这是一个完全由AI写的自动八字排盘工具，附带详细的提示词
 <img width="1260" height="1637" alt="Image" src="https://github.com/user-attachments/assets/3bd3b14e-d8a1-45cc-a107-dc60b98f06b4" />
 <img width="1260" height="2178" alt="Image" src="https://github.com/user-attachments/assets/2c6592eb-c7fe-41a4-bc4f-268abc53f567" />
 
