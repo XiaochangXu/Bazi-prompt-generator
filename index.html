@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>八字排盘</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.6.12/lunar.js"></script>
+  
+  <style>
+    :root {
+      --md-sys-color-primary: #385ba9;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #d8e2ff;
+      --md-sys-color-on-primary-container: #001a43;
+      --md-sys-color-surface: #fdfcff;
+      --md-sys-color-surface-container-low: #f3f3fa;
+      --md-sys-color-surface-container: #eeeeec;
+      --md-sys-color-on-surface: #1a1c1e;
+      --md-sys-color-on-surface-variant: #44474f;
+      --md-sys-color-outline: #74777f;
+      --md-sys-color-outline-variant: #c4c6d0;
+      --md-sys-color-background: #f8f9ff;
+      
+      --md-sys-typescale-font: "Google Sans", "Product Sans", "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+
+      /* 五行核心色彩 */
+      --wuxing-mu: #2e7d32;    
+      --wuxing-huo: #c62828;   
+      --wuxing-tu: #ef6c00;    
+      --wuxing-jin: #6d4c41;   
+      --wuxing-shui: #1565c0;  
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-surface);
+      font-family: var(--md-sys-typescale-font);
+      line-height: 1.4;
+      padding: 1rem 0.75rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container { max-width: 500px; width: 100%; transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .header { text-align: center; margin-bottom: 1.25rem; }
+    .header h1 { font-size: 2.2rem; font-weight: 700; color: var(--md-sys-color-primary); letter-spacing: -0.05rem; }
+    .header .subtitle { font-size: 0.85rem; font-weight: 500; color: var(--md-sys-color-on-surface-variant); margin-top: 0.25rem; }
+
+    .card {
+      background-color: var(--md-sys-color-surface);
+      border-radius: 1.25rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--md-sys-color-outline-variant);
+    }
+    
+    .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .form-group { display: flex; flex-direction: column; position: relative; }
+    .col-4 { grid-column: span 4; }
+    .col-2 { grid-column: span 2; }
+    .col-1 { grid-column: span 1; }
+
+    label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+      background: var(--md-sys-color-surface);
+      position: absolute;
+      top: -0.5rem;
+      left: 0.6rem;
+      padding: 0 0.25rem;
+      z-index: 1;
+    }
+    
+    input, select {
+      width: 100%;
+      height: 2.75rem;
+      padding: 0 0.6rem;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: 0.75rem;
+      background: transparent;
+      color: var(--md-sys-color-on-surface);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--md-sys-color-primary); border-width: 2px; }
+
+    .button-row { display: flex; justify-content: center; margin-top: 1rem; width: 100%; }
+    button {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      border-radius: 100px;
+      padding: 0.75rem 2rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    button.secondary {
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      width: 100%; padding: 0.75rem; border-radius: 0.75rem; font-weight: 700; border: none; cursor: pointer;
+    }
+
+    .bazi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      background: var(--md-sys-color-surface-container-low);
+      padding: 0.5rem;
+      border-radius: 1rem;
+      margin: 0.75rem 0;
+    }
+    .bazi-pillar {
+      background: var(--md-sys-color-surface);
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .pillar-title { font-size: 0.75rem; font-weight: 700; color: var(--md-sys-color-on-surface-variant); }
+    .gan-zhi-block { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+
+    .wx-mu { color: var(--wuxing-mu) !important; }
+    .wx-huo { color: var(--wuxing-huo) !important; }
+    .wx-tu { color: var(--wuxing-tu) !important; }
+    .wx-jin { color: var(--wuxing-jin) !important; }
+    .wx-shui { color: var(--wuxing-shui) !important; }
+
+    .shi-shen {
+      font-size: 0.7rem; font-weight: 700;
+      background: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      padding: 0.1rem 0.35rem; border-radius: 0.4rem; width: max-content; margin: 0 auto;
+    }
+    .hide-gan { font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); line-height: 1.3; }
+    .yun-tag { font-size: 0.7rem; color: var(--md-sys-color-outline); }
+
+    .section-title { font-size: 1.1rem; font-weight: 700; margin: 1rem 0 0.5rem 0; color: var(--md-sys-color-on-surface); }
+    
+    .dayun-item { 
+      background: var(--md-sys-color-surface-container-low); 
+      border-radius: 0.75rem; 
+      margin-bottom: 0.5rem; 
+      overflow: hidden;
+      border: 1px solid transparent;
+    }
+    .dayun-item.active {
+      border-color: var(--md-sys-color-outline-variant);
+      background: var(--md-sys-color-surface);
+    }
+    .dayun-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dayun-ganzhi { font-size: 1.2rem; font-weight: 700; }
+    .dayun-info { font-size: 0.75rem; color: var(--md-sys-color-on-surface-variant); }
+    
+    .liunian-wrapper {
+      display: none;
+      padding: 0 0.75rem 0.75rem 0.75rem;
+      background: var(--md-sys-color-surface-container-low);
+    }
+    .dayun-item.active .liunian-wrapper { display: block; }
+
+    .liunian-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; margin-top: 0.5rem; }
+    .liunian-tag {
+      text-align: center; background: var(--md-sys-color-surface); border-radius: 0.5rem;
+      padding: 0.4rem 0.1rem; font-size: 0.75rem; font-weight: 700; box-shadow: 0px 1px 2px rgba(0,0,0,0.02);
+    }
+    .shishen-text { color: var(--md-sys-color-on-surface-variant) !important; font-size: 0.7rem; font-weight: normal; }
+
+    .solar-time-panel {
+      margin-top: 0.5rem; background: var(--md-sys-color-surface-container-low); 
+      border-radius: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.8rem; 
+      color: var(--md-sys-color-on-surface-variant); display: flex; flex-direction: column; gap: 0.15rem;
+    }
+    .solar-time-panel strong { color: var(--md-sys-color-primary); }
+
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: #313033; color: #f4eff4; padding: 0.6rem 1.25rem; border-radius: 100px;
+      font-size: 0.85rem; z-index: 1000; transition: transform 0.2s ease;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    
+    .app-footer {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .app-footer a {
+      color: var(--md-sys-color-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .app-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       PC端/现代大屏响应式升级布局样式 (保持移动端原有体验完全不被侵蚀)
+       ========================================================================== */
+    @media (min-width: 768px) {
+      body { padding: 2rem 1.5rem; }
+      .container.has-result { max-width: 1150px; }
+      .main-layout { display: flex; flex-direction: column; gap: 1rem; width: 100%; }
+      .container.has-result .main-layout { flex-direction: row; align-items: start; gap: 1.5rem; }
+      .container.has-result .layout-left { width: 380px; flex-shrink: 0; position: sticky; top: 1.5rem; }
+      .container.has-result .layout-right { flex: 1; min-width: 0; }
+      .container.has-result .liunian-list { grid-template-columns: repeat(10, 1fr); gap: 0.5rem; }
+    }
+    @media (max-width: 335px) {
+      .form-grid { grid-template-columns: repeat(2, 1fr); }
+      .col-4, .col-2, .col-1 { grid-column: span 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="appContainer">
+    <div class="header">
+      <h1>AI八字排盘</h1>
+      <div class="subtitle" style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <span>AI 智能命理辅助工具</span>
+        <span style="color: var(--md-sys-color-outline-variant);">|</span>
+        <a href="https://github.com/XiaochangXu/Bazi-prompt-generator" target="_blank" style="color: var(--md-sys-color-primary); text-decoration: none; display: inline-flex; align-items: center; font-weight: 500; gap: 0.2rem;">
+          <svg height="14" width="14" viewBox="0 0 16 16" style="fill: currentColor; vertical-align: middle;"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82A7.427 7.427 0 0 0 8 4.49c-.68.01-1.36.09-2 .24-1.52-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+          GitHub 项目
+        </a>
+      </div>
+    </div>
+
+    <div class="main-layout">
+      <div class="layout-left">
+        <div class="card" style="padding: 1rem;">
+          <form id="baziForm">
+            <div class="form-grid">
+              <div class="form-group col-2">
+                <label for="nameInput">姓名</label>
+                <input type="text" id="nameInput" placeholder="请输入姓名" required>
+              </div>
+              <div class="form-group col-2">
+                <label for="genderSelect">性别</label>
+                <select id="genderSelect">
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                </select>
+              </div>
+              <div class="form-group col-2">
+                <label for="yearInput">公历出生年</label>
+                <input type="number" id="yearInput" placeholder="如：2007" min="1900" max="2100" required>
+              </div>
+              <div class="form-group col-1">
+                <label for="monthInput">月</label>
+                <input type="number" id="monthInput" placeholder="月" min="1" max="12" required>
+              </div>
+              <div class="form-group col-1">
+                <label for="dayInput">日</label>
+                <input type="number" id="dayInput" placeholder="日" min="1" max="31" required>
+              </div>
+              <div class="form-group col-4">
+                <label for="timeInput">公历生辰 (时:分)</label>
+                <input type="time" id="timeInput" required>
+              </div>
+              <div class="form-group col-4">
+                <label for="lngInput">出生地 (校正真太阳时)</label>
+                <select id="lngInput">
+                  <option value="120.00">基准北京时间 (东经 120.00°)</option>
+                  <option value="116.40">北京 直辖市 (东经 116.40°)</option>
+                  <option value="121.47">上海 直辖市 (东经 121.47°)</option>
+                  <option value="117.20">天津 直辖市 (东经 117.20°)</option>
+                  <option value="106.55">重庆 直辖市 (东经 106.55°)</option>
+                  <option value="114.17">香港 特别行政区 (东经 114.17°)</option>
+                  <option value="113.54">澳门 特别行政区 (东经 113.54°)</option>
+                  <option value="113.30">广东 广州/韶关 (东经 113.30°)</option>
+                  <option value="114.31">湖北 武汉 (东经 114.31°)</option>
+                  <option value="112.98">湖南 长沙 (东经 112.98°)</option>
+                  <option value="118.78">江苏 南京 (东经 118.78°)</option>
+                  <option value="120.19">浙江 杭州 (东经 120.19°)</option>
+                  <option value="117.27">安徽 合肥 (东经 117.27°)</option>
+                  <option value="119.30">福建 福州 (东经 119.30°)</option>
+                  <option value="115.89">江西 南昌 (东经 115.89°)</option>
+                  <option value="117.00">山东 济南 (东经 117.00°)</option>
+                  <option value="113.65">河南 郑州 (东经 113.65°)</option>
+                  <option value="114.48">河北 石家庄 (东经 114.48°)</option>
+                  <option value="112.53">山西 太原 (东经 112.53°)</option>
+                  <option value="104.06">四川 成都 (东经 104.06°)</option>
+                  <option value="108.93">陕西 西安 (东经 108.93°)</option>
+                </select>
+              </div>
+            </div>
+            <div id="solarTimePanel" class="solar-time-panel" style="display: none;"></div>
+            <div class="button-row">
+              <button type="submit">生成排盘</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="layout-right">
+        <div id="resultContainer" style="display: none;">
+          <div class="card" style="border-color: transparent; background: transparent; padding: 0; margin-bottom: 0.75rem;">
+            <button id="copyAiPromptBtn" class="secondary">📋 一键复制 AI 深度分析提示词</button>
+          </div>
+          <div class="card">
+            <div class="section-title" style="margin-top: 0;">四柱排盘</div>
+            <div id="baziGridContainer" class="bazi-grid"></div>
+            <div id="dayunContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer class="app-footer">
+      <p>开源项目：<a href="https://github.com/XiaochangXu/Bazi-prompt-generator" target="_blank">Bazi-prompt-generator</a></p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    (function() {
+      let currentBaziData = null;
+
+      // 核心基础映射数据定义
+      const WUXING_MAP = {
+        '甲': 'mu', '乙': 'mu', '寅': 'mu', '卯': 'mu',
+        '丙': 'huo', '丁': 'huo', '巳': 'huo', '午': 'huo',
+        '戊': 'tu', '己': 'tu', '辰': 'tu', '戌': 'tu', '丑': 'tu', '未': 'tu',
+        '庚': 'jin', '辛': 'jin', '申': 'jin', '酉': 'jin',
+        '壬': 'shui', '癸': 'shui', '亥': 'shui', '子': 'shui'
+      };
+
+      const GAN_WUXING = { '甲':'木','乙':'木','丙':'火','丁':'火','戊':'土','己':'土','庚':'金','辛':'金','壬':'水','癸':'水' };
+      const GAN_YINYANG = { '甲':'阳','丙':'阳','戊':'阳','庚':'阳','壬':'阳','乙':'阴','丁':'阴','己':'阴','辛':'阴','癸':'阴' };
+
+      // 工具方法：安全控制及输入过滤转义
+      function sanitizeInput(str) {
+        return str.replace(/[<>&"'\/]/g, function (s) {
+          return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;', '/': '&#x2F;' }[s];
+        });
+      }
+
+      function isValidDate(y, m, d) {
+        if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+        const dt = new Date(y, m - 1, d);
+        return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+      }
+
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+
+      function wrapWxColor(char) {
+        if (!char) return '';
+        const cls = WUXING_MAP[char];
+        return cls ? `<span class="wx-${cls}">${char}</span>` : char;
+      }
+
+      function getEquationOfTime(year, month, day) {
+        const N = Math.floor(275 * month / 9) - (Math.floor((month + 9) / 12) * (1 + Math.floor((year - 4 * Math.floor(year / 4) + 2) / 3))) + day - 30;
+        const B = (360 / 365.24) * (N - 81) * Math.PI / 180;
+        return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+      }
+
+      function getShiShen(dayGan, targetGan) {
+        if (!dayGan || !targetGan) return '';
+        const wuXingDay = GAN_WUXING[dayGan];
+        const wuXingTarget = GAN_WUXING[targetGan];
+        const dayYinYang = GAN_YINYANG[dayGan] === '阳';
+        const targetYinYang = GAN_YINYANG[targetGan] === '阳';
+        if (wuXingDay === wuXingTarget) return dayYinYang === targetYinYang ? '比肩' : '劫财';
+        const shengKeMap = {
+          '木火':'我生','火土':'我生','土金':'我生','金水':'我生','水木':'我生',
+          '木土':'我克','土水':'我克','水火':'我克','火金':'我克','金木':'我克',
+          '木金':'克我','金火':'克我','火水':'克我','水土':'克我','土木':'克我',
+          '木水':'生我','水金':'生我','金土':'生我','土火':'生我','火木':'生我'
+        };
+        const relation = shengKeMap[wuXingDay + wuXingTarget];
+        switch (relation) {
+          case '我生': return dayYinYang === targetYinYang ? '食神' : '伤官';
+          case '我克': return dayYinYang === targetYinYang ? '偏财' : '正财';
+          case '克我': return dayYinYang === targetYinYang ? '七杀' : '正官';
+          case '生我': return dayYinYang === targetYinYang ? '偏印' : '正印';
+          default: return '';
+        }
+      }
+
+      function getChangSheng(dayGan, diZhi) {
+        const changShengNames = ['长生','沐浴','冠带','临官','帝旺','衰','病','死','墓','绝','胎','养'];
+        const startZhiMap = { '甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯' };
+        const diZhiOrder = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+        const startZhi = startZhiMap[dayGan];
+        if (!startZhi) return '';
+        const startIndex = diZhiOrder.indexOf(startZhi);
+        const targetIndex = diZhiOrder.indexOf(diZhi);
+        if (startIndex === -1 || targetIndex === -1) return '';
+        const isYang = GAN_YINYANG[dayGan] === '阳';
+        return changShengNames[isYang ? (targetIndex - startIndex + 12) % 12 : (startIndex - targetIndex + 12) % 12];
+      }
+
+      function generateBaziData(name, gender, year, month, day, hour, minute, longitude) {
+        const Lib = window.lunar || window.LunarJ || window.lunarJavascript || (window.Solar ? window : null);
+        if (!Lib) throw new Error("依赖库未正确加载，请检查网络或重试");
+        
+        const longitudeOffsetMin = (longitude - 120.0) * 4;
+        const eotMin = getEquationOfTime(year, month, day);
+        const totalOffsetMin = longitudeOffsetMin + eotMin;
+        
+        let baseDate = new Date(year, month - 1, day, hour, minute);
+        baseDate.setMilliseconds(baseDate.getMilliseconds() + totalOffsetMin * 60 * 1000);
+        
+        const solar = (Lib.Solar || window.Solar).fromYmdHms(baseDate.getFullYear(), baseDate.getMonth()+1, baseDate.getDate(), baseDate.getHours(), baseDate.getMinutes(), 0);
+        const lunar = solar.getLunar();
+        const eightChar = lunar.getEightChar();
+        const dayGan = eightChar.getDayGan();
+        const monthPillarText = eightChar.getMonth();
+        const monthShiShen = getShiShen(dayGan, monthPillarText.charAt(0));
+        
+        function buildPillar(ganZhi, gan, zhi, hideGanArr, hasTianGanShiShen) {
+          return {
+            ganZhi, gan, zhi,
+            hideGan: hideGanArr.map(hg => ({ gan: hg, shiShen: getShiShen(dayGan, hg) })),
+            changSheng: getChangSheng(dayGan, zhi),
+            shiShen: hasTianGanShiShen ? getShiShen(dayGan, gan) : ''
+          };
+        }
+        
+        const yun = eightChar.getYun(gender === '男' ? 1 : 0);
+        const rawDaYun = yun.getDaYun();
+        const filteredDaYun = [];
+        
+        // ✨ 安全修复：从大运数组第一步安全地捕获真实的起运岁数与年份
+        let realStartAge = 8, realStartYear = year + 8;
+        for (let i = 0; i < rawDaYun.length; i++) {
+          if (rawDaYun[i].getGanZhi()) {
+            realStartYear = rawDaYun[i].getStartYear();
+            realStartAge = rawDaYun[i].getStartAge();
+            break;
+          }
+        }
+        
+        filteredDaYun.push({
+          isTaiYun: true, ganZhi: '', title: `胎运 (走月柱${monthPillarText}之气)`,
+          ageText: `0~${realStartAge}岁`, yearText: `${year}-${realStartYear}`,
+          shiShen: monthShiShen, liuNian: []
+        });
+
+        const currentRealYear = new Date().getFullYear();
+        rawDaYun.forEach((dYun) => {
+          const gz = dYun.getGanZhi();
+          if (!gz) return;
+          
+          // 大运的岁数范围调用库底层的区间，比单纯固定+10更稳健
+          const currentStartAge = dYun.getStartAge();
+          const currentEndAge = dYun.getEndAge();
+          const currentStartYear = dYun.getStartYear();
+          
+          const isCurrent運 = (currentRealYear >= currentStartYear && currentRealYear < currentStartYear + 10);
+
+          filteredDaYun.push({
+            isTaiYun: false, ganZhi: gz, gan: gz.charAt(0), zhi: gz.charAt(1),
+            isCurrent: isCurrent運,
+            ageText: `${currentStartAge}-${currentEndAge}岁`,
+            yearText: `${currentStartYear}-${currentStartYear + 10}`,
+            shiShen: getShiShen(dayGan, gz.charAt(0)),
+            liuNian: dYun.getLiuNian().map(ln => ({
+              year: ln.getYear(), ganZhi: ln.getGanZhi(), shiShen: getShiShen(dayGan, ln.getGanZhi().charAt(0))
+            }))
+          });
+        });
+        
+        return {
+          name, gender, 
+          birthday: `${baseDate.getFullYear()}-${String(baseDate.getMonth()+1).padStart(2,'0')}-${String(baseDate.getDate()).padStart(2,'0')} ${String(baseDate.getHours()).padStart(2,'0')}:${String(baseDate.getMinutes()).padStart(2,'0')}`,
+          yearPillar: buildPillar(eightChar.getYear(), eightChar.getYearGan(), eightChar.getYearZhi(), eightChar.getYearHideGan(), true),
+          monthPillar: buildPillar(eightChar.getMonth(), eightChar.getMonthGan(), eightChar.getMonthZhi(), eightChar.getMonthHideGan(), true),
+          dayPillar: buildPillar(eightChar.getDay(), eightChar.getDayGan(), eightChar.getDayZhi(), eightChar.getDayHideGan(), false),
+          timePillar: buildPillar(eightChar.getTime(), eightChar.getTimeGan(), eightChar.getTimeZhi(), eightChar.getTimeHideGan(), true),
+          daYun: filteredDaYun
+        };
+      }
+
+      function renderResult(data) {
+        document.getElementById('resultContainer').style.display = 'block';
+        const pillars = [data.yearPillar, data.monthPillar, data.dayPillar, data.timePillar];
+        const titles = ['年柱', '月柱', '日柱', '时柱'];
+        
+        let gridHtml = '';
+        pillars.forEach((p, idx) => {
+          gridHtml += `
+            <div class="bazi-pillar">
+              <div class="pillar-title">${titles[idx]}</div>
+              <div class="gan-zhi-block">${wrapWxColor(p.ganZhi[0])}<br>${wrapWxColor(p.ganZhi[1])}</div>
+              <div class="shi-shen">${p.shiShen || '日主'}</div>
+              <div class="hide-gan">${p.hideGan.map(h => `${wrapWxColor(h.gan)}<span class="shishen-text">${h.shiShen}</span>`).join('<br>')}</div>
+              <div class="yun-tag">${p.changSheng}</div>
+            </div>`;
+        });
+        document.getElementById('baziGridContainer').innerHTML = gridHtml;
+        
+        let dayunHtml = `<div class="section-title">流年大运</div>`;
+        data.daYun.forEach((d, i) => {
+          if (d.isTaiYun) {
+            dayunHtml += `
+              <div class="dayun-item">
+                <div class="dayun-header" style="cursor:default;">
+                  <span class="dayun-ganzhi" style="font-size:1rem; color:var(--md-sys-color-on-surface-variant);">🌱 胎运</span>
+                  <span class="dayun-info">${d.ageText} · ${d.yearText}</span>
+                </div>
+              </div>`;
+          } else {
+            const isActive = d.isCurrent || (i === 1 && !data.daYun.some(x => x.isCurrent));
+            dayunHtml += `
+              <div class="dayun-item ${isActive ? 'active' : ''}" onclick="toggleAccordion(this)">
+                <div class="dayun-header">
+                  <span class="dayun-ganzhi">
+                    ${wrapWxColor(d.ganZhi[0])}${wrapWxColor(d.ganZhi[1])}
+                    <span class="shishen-text" style="font-size:0.75rem; margin-left:0.25rem;">${d.shiShen}</span>
+                  </span>
+                  <span class="dayun-info">${d.ageText} (${d.yearText})</span>
+                </div>
+                <div class="liunian-wrapper" onclick="event.stopPropagation();">
+                  <div class="liunian-list">`;
+            d.liuNian.forEach(l => {
+              dayunHtml += `
+                <div class="liunian-tag">
+                  <span style="font-size:0.65rem; color:var(--md-sys-color-outline); font-weight:normal;">${l.year}</span><br>
+                  ${wrapWxColor(l.ganZhi[0])}${wrapWxColor(l.ganZhi[1])}<br>
+                  <span class="shishen-text">${l.shiShen}</span>
+                </div>`;
+            });
+            dayunHtml += `</div></div></div>`;
+          }
+        });
+        document.getElementById('dayunContainer').innerHTML = dayunHtml;
+        
+        // 排盘成功后触发PC端骨架变形
+        document.getElementById('appContainer').classList.add('has-result');
+        document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      window.toggleAccordion = function(element) {
+        const items = document.querySelectorAll('.dayun-item');
+        items.forEach(item => { if(item !== element) item.classList.remove('active'); });
+        element.classList.toggle('active');
+      }
+
+      document.getElementById('baziForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const rawName = document.getElementById('nameInput').value.trim();
+        const name = sanitizeInput(rawName); 
+        const gender = document.getElementById('genderSelect').value;
+        const year = parseInt(document.getElementById('yearInput').value, 10);
+        const month = parseInt(document.getElementById('monthInput').value, 10);
+        const day = parseInt(document.getElementById('dayInput').value, 10);
+        const timeVal = document.getElementById('timeInput').value;
+        const longitude = parseFloat(document.getElementById('lngInput').value);
+        
+        if(!timeVal) return;
+        
+        // 前置严格真实合法性校验
+        if (!isValidDate(year, month, day)) {
+          showToast('❌ 输入的公历日期不合法（请检查月份及天数）');
+          return;
+        }
+
+        const [hour, minute] = timeVal.split(':').map(num => parseInt(num, 10));
+        
+        try {
+          const data = generateBaziData(name, gender, year, month, day, hour, minute, longitude);
+          currentBaziData = data;
+          document.getElementById('solarTimePanel').style.display = 'block';
+          document.getElementById('solarTimePanel').innerHTML = `<div>☀️ 真太阳时精校：<strong>${data.birthday}</strong></div>`;
+          renderResult(data);
+        } catch (err) { 
+          showToast(`❌ 排盘失败: ${err.message}`); 
+        }
+      });
+
+      document.getElementById('copyAiPromptBtn').addEventListener('click', function() {
+        if (!currentBaziData) return;
+        
+        const formatPillarText = (title, p) => {
+          return `${title}：${p.ganZhi} (${p.gan}${p.zhi}) ${p.shiShen ? '['+p.shiShen+']' : '[日主]'} | 藏干：${p.hideGan.map(h => `${h.gan}(${h.shiShen})`).join('、')} | 地支运：${p.changSheng}`;
+        };
+
+        let dayunTextBlocks = '';
+        let currentYunLabel = '未知';
+        
+        currentBaziData.daYun.forEach(d => {
+          if (d.isTaiYun) {
+            dayunTextBlocks += `- 🌱 胎运：${d.ageText} (${d.yearText}) | 对应月气十神：${d.shiShen}\n`;
+          } else {
+            const activeStar = d.isCurrent ? ' 🌟[当前正走此大运]' : '';
+            if (d.isCurrent) { currentYunLabel = `${d.ganZhi}运 (${d.ageText})`; }
+            
+            dayunTextBlocks += `- 🗓️ 大运：${d.ganZhi}运 [${d.shiShen}] | 周期：${d.ageText} (${d.yearText})${activeStar}\n`;
+            dayunTextBlocks += `  └── 包含流年：${d.liuNian.map(l => `${l.year}年${l.ganZhi}[${l.shiShen}]`).join('、')}\n`;
+          }
+        });
+
+        const advancedPrompt = `你是一位深研正统子平命理的资深预测师，严格遵循《三命通会》《滴天髓》《子平真诠》《穷通宝鉴》四部古籍理论，禁止使用任何新派命理、盲派命理或其他非主流流派的观点。
+
+请针对以下命主的八字原局与后天岁运数据，按照指定的六个维度进行深度断论，字数不设上限，严禁空话套话，所有结论必须有明确的命理依据，必要时引用古籍原文并注明完整出处（如《子平真诠·卷一·论用神》）。对于首次出现的专业术语，请用通俗的语言简要解释。
+
+【基本信息】
+姓名：${currentBaziData.name}
+性别：${currentBaziData.gender}
+先天八字原局：
+- ${formatPillarText('年柱', currentBaziData.yearPillar)}
+- ${formatPillarText('月柱', currentBaziData.monthPillar)}
+- ${formatPillarText('日柱', currentBaziData.dayPillar)}
+- ${formatPillarText('时柱', currentBaziData.timePillar)}
+
+【完整后天行运（大运与流年排盘数据）】
+命主当前大运锚定：${currentYunLabel}
+全量岁运路线图：
+${dayunTextBlocks}
+
+【断论维度与要求】
+1. 格局定位与成败
+   - 严格按照《子平真诠》"八字用神，专求月令"的原则判定核心格局，先判断是否为正格，再考虑变格
+   - 深入剖析月令提纲的透干、藏干情况，明确区分"月令用神"和"相神"（辅助用神成格的十神），论述格局的清纯、混杂、成格或破格
+   - 明确指出格局的"成格条件"、"破格因素"和"救应之神"
+   - 严格区分"月令格局用神"和"全局调候用神"，明确调候用神永远是第一优先级，格局用神必须服从于调候用神，引用《穷通宝鉴·序》："调候为急，用神次之，此不易之理也"
+
+2. 五行旺衰与喜忌取用
+   - 分析日元的得令、得地、得势情况，按照以下标准量化五行力量占比（精确到5%）：
+     * 得令：月令本气，占40%力量
+     * 得地：地支通根，本气根占15%，余气根占10%，墓库根占5%
+     * 得势：天干比劫印星，每个占5%力量
+     * 克泄耗：天干每个克泄耗十神（官杀、财星、食伤）消耗日元5%力量，地支每个克泄耗藏干消耗日元3%力量
+     * 最终日元旺度=生扶力量总和-克泄耗力量总和
+   - 先分析命局寒暖燥湿，严格遵循"调候为急"的原则，再进行扶抑分析
+   - 精确定出命局的"第一真神用神"（调候用神）、"第二喜神"（格局用神/扶抑用神）、"忌神"与"闲神"，并详细阐述取用理由
+   - 说明用神的有力程度和受损情况，以及忌神的旺衰和危害
+
+3. 心性与神智解读
+   - 结合十神的透干通根情况、坐支旺衰以及与其他十神的生克合冲关系，客观论述命主性格的双面性
+   - 严格禁止十神标签化解读：十神本身无吉凶，吉凶完全取决于它是用神还是忌神。用神为正官则责任心强，忌神为正官则懦弱保守；用神为比劫则重情重义，忌神为比劫则冲动鲁莽
+   - 分析命主的思维方式、决策模式、人际关系特点和行为习惯
+   - 指出性格中的致命弱点及可能导致的人生风险
+   - 说明如何发挥性格优势，克服性格缺陷
+
+4. 过往事件验证（核心校准，不可跳过）
+   - 验证目的：确认原局排盘的准确性，以及格局、用神、旺衰判断的正确性，为后续运势预测提供唯一可靠的基础
+   - 验证原则：所有推断必须与已经发生的客观事实完全吻合，不得强行解释或自圆其说
+   - 验证年份选择（按优先级排序）：
+     1.  命主记忆中印象最深刻的3-5个吉凶年份（如升学、毕业、结婚、生子、失业、创业、重大疾病、亲人离世、重大破财等）
+     2.  大运交接的年份（人生重大转折点，事件信号最明显）
+     3.  与原局月令提纲或日支发生六冲、六害、三刑的年份
+     4.  原局忌神或用神力量达到极致的年份
+   - 验证内容：针对每个选定的年份，详细推断命主在事业学业、财运、感情婚姻、健康、家庭六亲五个方面发生的主要事件
+   - 强制校准机制：
+     1.  如果有任何一个年份的主要事件与推断严重不符，必须立即停止未来运势分析
+     2.  首先排查原局和大运排盘是否存在错误（如出生时间、节气、性别、时区等）
+     3.  若排盘无误，则重新审视格局、用神、旺衰的判断，直到所有验证年份的推断都与事实吻合
+     4.  严禁在验证不通过的情况下继续进行未来运势预测
+
+5. 大运流年与近期运势（核心考核）
+   - 先分析每一步大运对原局的整体影响，说明该大运的吉凶性质和发展主题，严格遵循"大运天干管前五年，地支管后五年"的原则
+   - 大运分析必须遵守以下规则：
+     * 大运天干只与原局天干发生直接生克作用，不直接作用于原局地支
+     * 大运地支只与原局地支发生直接生克合冲作用，不直接作用于原局天干
+     * 天干主外象（事业、名声、外部机遇、人际关系），地支主内实（财运、家庭、健康、根基、内心状态）
+   - 聚焦当前所行的大运，详细分析大运天干和地支各自与原局的生克合冲关系
+   - 重点解剖当前年份及未来三年的流年运势
+   - 细致论述每个流年的三合、六合、六冲、六害、三刑、伏吟、反吟等对命局造成的实质性影响
+   - 每个流年必须分别点评事业、财运、感情、健康四个方面，并按照以下规则指出吉凶应期（具体到月份）：
+     * 吉应于用神当令之月，凶应于忌神当令之月
+     * 冲者应于合月，合者应于冲月
+     * 伏吟反吟应于本气当令之月
+   - 简要分析后续大运的整体走势，指出人生的黄金时期和低谷时期
+
+6. 开运与人生战略建议
+   - 基于喜用神，给出具体的方位、颜色、行业、数字、风水调整建议
+   - 给出不同人生阶段的差异化战略建议：青年期、中年期、晚年期
+   - 给出具体的人际关系建议：宜与哪些属相的人交往，不宜与哪些属相的人深交
+   - 给出具体的财运和投资建议：哪些年份适合投资，哪些年份不宜投资，适合投资哪些领域
+   - 给出具体的健康建议：需要重点防范哪些疾病，以及相应的养生方法
+   - 给出具体的风险规避建议：一生中最需要注意的年份 and 事件，以及如何化解
+
+【特别要求】
+- 所有结论必须有明确的命理依据，禁止使用"可能""大概""也许"等模糊表述
+- 禁止使用任何封建迷信或绝对化的语言，如"必定大富大贵""一生穷困倒倒"等
+- 所有预测均为趋势性判断，必须在每个建议部分明确说明：命理只是揭示人生的概率趋势，人的主观选择、努力程度和道德修养才是决定人生成败的根本因素
+- 语言要专业、客观、中立，既要指出命局的优点，也要指出命局的缺点
+- 严格禁止编造任何古籍内容，引用原文必须准确无误并注明完整出处。如果无法准确引用原文，则用自己的话阐述理论，不得假托古籍
+- 回答结构要清晰，每个维度下可以分小点论述，但不要使用过于花哨的格式`;
+
+        navigator.clipboard.writeText(advancedPrompt).then(() => {
+          showToast('✅ 复制成功，快拿去问AI吧');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
