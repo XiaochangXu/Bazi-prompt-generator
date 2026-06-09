@@ -1,12 +1,12 @@
 # 八字排盘工具
-这是一个完全由AI写的自动八字排盘工具，附带详细的提示词
+这是一个由AI写的自动八字排盘工具，附带详细的提示词
 <img width="1260" height="1637" alt="Image" src="https://github.com/user-attachments/assets/3bd3b14e-d8a1-45cc-a107-dc60b98f06b4" />
 <img width="1260" height="2178" alt="Image" src="https://github.com/user-attachments/assets/2c6592eb-c7fe-41a4-bc4f-268abc53f567" />
 
 
 #🌌 人工智能八字排盘与深度提示词工程工具(AI Bazi动态提示生成器)
 
-这是一个专为**现代命理研究者**与**AI大语言模型交互**打造的高颜值、轻量级、纯前端八字排盘辅助工具。 本工具完美解决了传统排盘软件无法与AI深度结合的痛点.
+一个专为**现代命理研究者**与**AI大语言模型交互**打造的高颜值、轻量级、纯前端八字排盘辅助工具。 本工具完美解决了传统排盘软件无法与AI深度结合的痛点.
 
 ---
 
@@ -35,8 +35,4 @@
 
 1. **直接访问**：https://xiaochangxu.github.io/Bazi-prompt-generator/
 2. **本地运行**：直接下载本仓库的`index.html`文件，双击即可在任意浏览器中离线运行。
-
-##📚  鸣谢支持
-感谢双子座老师和deepseek老师，最后经过豆包老师和问真八字的验证，确保八字排盘没有错误
-
 
